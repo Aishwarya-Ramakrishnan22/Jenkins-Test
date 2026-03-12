@@ -4,29 +4,35 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Pull code from the Git repository
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Setup Python Venv') {
             steps {
-                // Install Python packages from requirements.txt
-                sh 'pip3 install -r requirements.txt'
+                // Create a virtual environment and install dependencies
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
+                '''
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                // Run pytest and generate a JUnit XML report
-                sh 'pytest tests/ -v --junitxml=reports/results.xml'
+                // Activate venv and run tests
+                sh '''
+                    . venv/bin/activate
+                    mkdir -p reports
+                    pytest tests/ -v --junitxml=reports/results.xml
+                '''
             }
         }
     }
 
     post {
         always {
-            // Publish test results so Jenkins shows them in the UI
             junit allowEmptyResults: true, testResults: 'reports/results.xml'
         }
         success {
@@ -34,6 +40,10 @@ pipeline {
         }
         failure {
             echo '❌ Some tests failed. Check the report above.'
+        }
+        cleanup {
+            // Clean up the virtual environment
+            sh 'rm -rf venv'
         }
     }
 }
