@@ -12,14 +12,14 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 // Install Python packages from requirements.txt
-                bat 'pip install -r requirements.txt'
+                sh 'pip3 install -r requirements.txt'
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
                 // Run pytest and generate a JUnit XML report
-                bat 'pytest tests/ -v --junitxml=reports/results.xml'
+                sh 'pytest tests/ -v --junitxml=reports/results.xml'
             }
         }
     }
